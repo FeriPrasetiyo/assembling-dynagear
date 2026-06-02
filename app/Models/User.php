@@ -14,11 +14,17 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'role',
     ];
 
     protected $hidden = [
         'password',
     ];
+
+    public function wilayah()
+    {
+        return $this->hasOne(Wilayah::class);
+    }
 
     public function getJWTIdentifier()
     {

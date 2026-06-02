@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Data Wilayah - Dynagear</title>
+    <title>Dokumentasi product - Dynagear</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -27,7 +27,18 @@
             <span class="text-white me-3">
                 Selamat Datang,
                 <strong>{{ Auth::user()->name }}</strong>
+
+                <span class="badge bg-warning text-dark ms-2">
+                    {{ strtoupper(Auth::user()->role) }}
+                </span>
             </span>
+
+            @if(Auth::user()->role === 'admin')
+                <a href="/users"
+                   class="btn btn-light btn-sm me-2">
+                    User
+                </a>
+            @endif
 
             <form action="/logout" method="POST">
                 @csrf
@@ -48,17 +59,26 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 
-        <h2>Data Wilayah</h2>
+        <h2>Dokumentasi Product</h2>
 
-        <a href="/wilayah/create" class="btn btn-success">
-            + Tambah Wilayah
-        </a>
+        @if(Auth::user()->role === 'admin')
+            <a href="/wilayah/create"
+               class="btn btn-success">
+                + Tambah Wilayah
+            </a>
+        @endif
 
     </div>
 
     @if(session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
         </div>
     @endif
 
@@ -76,9 +96,12 @@
                             {{ $wilayah->nama_wilayah }}
                         </h4>
 
-                        <p class="text-muted">
-                            Kelola data foto dan video wilayah
-                        </p>
+                        @if(Auth::user()->role === 'admin' && $wilayah->user)
+                            <p class="text-muted mb-1">
+                                User:
+                                <strong>{{ $wilayah->user->name }}</strong>
+                            </p>
+                        @endif
 
                     </div>
 
@@ -91,19 +114,23 @@
                                 📷 Lihat Foto & Video
                             </a>
 
-                            <form action="/wilayah/{{ $wilayah->id }}"
-                                  method="POST"
-                                  onsubmit="return confirm('Yakin ingin menghapus wilayah ini?')">
+                            @if(Auth::user()->role === 'admin')
 
-                                @csrf
-                                @method('DELETE')
+                                <form action="/wilayah/{{ $wilayah->id }}"
+                                      method="POST"
+                                      onsubmit="return confirm('Yakin ingin menghapus wilayah ini?')">
 
-                                <button type="submit"
-                                        class="btn btn-danger w-100">
-                                    🗑 Hapus Wilayah
-                                </button>
+                                    @csrf
+                                    @method('DELETE')
 
-                            </form>
+                                    <button type="submit"
+                                            class="btn btn-danger w-100">
+                                        🗑 Hapus Wilayah
+                                    </button>
+
+                                </form>
+
+                            @endif
 
                         </div>
 
@@ -121,12 +148,16 @@
 
                     Belum ada data wilayah.
 
-                    <br><br>
+                    @if(Auth::user()->role === 'admin')
 
-                    <a href="/wilayah/create"
-                       class="btn btn-success">
-                        Tambah Wilayah Pertama
-                    </a>
+                        <br><br>
+
+                        <a href="/wilayah/create"
+                           class="btn btn-success">
+                            Tambah Wilayah Pertama
+                        </a>
+
+                    @endif
 
                 </div>
 

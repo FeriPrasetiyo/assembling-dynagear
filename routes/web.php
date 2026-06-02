@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\PostFileController;
 use App\Http\Controllers\WilayahController;
+use App\Http\Controllers\UserController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -21,27 +22,35 @@ Route::middleware('auth:web')->group(function () {
     Route::get('/dashboard', [AuthController::class, 'dashboard'])
         ->name('dashboard');
 
+    // User Management Admin
+    Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/create', [UserController::class, 'create']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::get('/users/{user}/edit', [UserController::class, 'edit']);
+    Route::put('/users/{user}', [UserController::class, 'update']);
+    Route::delete('/users/{user}', [UserController::class, 'destroy']);
+
+    // Wilayah
     Route::get('/wilayah', [WilayahController::class, 'index']);
     Route::get('/wilayah/create', [WilayahController::class, 'create']);
     Route::post('/wilayah', [WilayahController::class, 'store']);
     Route::delete('/wilayah/{wilayah}', [WilayahController::class, 'destroy']);
 
+    // Foto & Video
     Route::get('/wilayah/{wilayah}/foto-video', [PostController::class, 'index']);
     Route::get('/wilayah/{wilayah}/foto-video/create', [PostController::class, 'create']);
     Route::post('/wilayah/{wilayah}/foto-video', [PostController::class, 'store']);
 
+    Route::get('/wilayah/{wilayah}/foto-video/{post}', [PostController::class, 'show']);
     Route::get('/wilayah/{wilayah}/foto-video/{post}/edit', [PostController::class, 'edit']);
     Route::put('/wilayah/{wilayah}/foto-video/{post}', [PostController::class, 'update']);
     Route::delete('/wilayah/{wilayah}/foto-video/{post}', [PostController::class, 'destroy']);
 
-    Route::get('/wilayah/{wilayah}/foto-video/{post}', [PostController::class, 'show']);
-    Route::get('/wilayah/{wilayah}/foto-video/{post}/edit', [PostController::class, 'edit']);
+    // Hapus file foto/video
     Route::delete(
-    '/wilayah/{wilayah}/foto-video/{post}/file/{file}',
-    [PostFileController::class, 'destroy']
-);
+        '/wilayah/{wilayah}/foto-video/{post}/file/{file}',
+        [PostFileController::class, 'destroy']
+    );
 
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
-
-Route::post('/logout', [AuthController::class, 'logout'])
-    ->middleware('auth');

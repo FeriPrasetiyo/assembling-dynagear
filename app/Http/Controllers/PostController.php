@@ -8,38 +8,69 @@ use App\Models\PostFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+
 class PostController extends Controller
 {
+    private function checkViewAccess(Wilayah $wilayah)
+    {
+        if (
+            auth()->user()->role !== 'admin' &&
+            $wilayah->user_id !== auth()->id()
+        ) {
+            abort(403);
+        }
+    }
+
+    private function adminOnly()
+    {
+        if (auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+    }
+
+    private function checkPostBelongsToWilayah(Wilayah $wilayah, Post $post)
+    {
+        if ($post->wilayah_id !== $wilayah->id) {
+            abort(404);
+        }
+    }
+
     public function index(Request $request, Wilayah $wilayah)
-{
-    $search = $request->search;
+    {
+        $this->checkViewAccess($wilayah);
 
-    $posts = $wilayah->posts()
-        ->with('files')
-        ->when($search, function ($query) use ($search) {
+        $search = $request->search;
 
-            $query->where('nomor_so', 'like', "%{$search}%")
-                  ->orWhere('nama_barang', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+        $posts = $wilayah->posts()
+            ->with('files')
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nomor_so', 'like', "%{$search}%")
+                        ->orWhere('nama_barang', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(10);
 
-        })
-        ->latest()
-        ->paginate(10);
-
-    return view('posts.index', compact(
-        'wilayah',
-        'posts',
-        'search'
-    ));
-}
+        return view('posts.index', compact(
+            'wilayah',
+            'posts',
+            'search'
+        ));
+    }
 
     public function create(Wilayah $wilayah)
     {
+        $this->adminOnly();
+
         return view('posts.create', compact('wilayah'));
     }
 
     public function store(Request $request, Wilayah $wilayah)
     {
+        $this->adminOnly();
+
         $request->validate([
             'nomor_so' => 'required',
             'nama_barang' => 'required',
@@ -84,90 +115,98 @@ class PostController extends Controller
             ->with('success', 'Data berhasil ditambahkan');
     }
 
+    public function show(Wilayah $wilayah, Post $post)
+    {
+        $this->checkViewAccess($wilayah);
+        $this->checkPostBelongsToWilayah($wilayah, $post);
+
+        $post->load('files');
+
+        return view('posts.show', compact('wilayah', 'post'));
+    }
+
     public function edit(Wilayah $wilayah, Post $post)
     {
+        $this->adminOnly();
+        $this->checkPostBelongsToWilayah($wilayah, $post);
+
         $post->load('files');
 
         return view('posts.edit', compact('wilayah', 'post'));
     }
 
-
     public function update(Request $request, Wilayah $wilayah, Post $post)
-{
-    $request->validate([
-        'nomor_so' => 'required',
-        'nama_barang' => 'required',
-        'tanggal' => 'required|date',
-        'description' => 'nullable',
+    {
+        $this->adminOnly();
+        $this->checkPostBelongsToWilayah($wilayah, $post);
 
-        'foto.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        'video.*' => 'nullable|file|mimes:mp4,mov,avi,mkv,webm|max:102400',
-    ]);
+        $request->validate([
+            'nomor_so' => 'required',
+            'nama_barang' => 'required',
+            'tanggal' => 'required|date',
+            'description' => 'nullable',
 
-    // Hapus foto/video yang dicentang
-    if ($request->has('hapus_file')) {
-        foreach ($request->hapus_file as $fileId) {
-            $file = PostFile::find($fileId);
+            'foto.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'video.*' => 'nullable|file|mimes:mp4,mov,avi,mkv,webm|max:102400',
+        ]);
 
-            if ($file && $file->post_id == $post->id) {
-                Storage::disk('public')->delete($file->file);
-                $file->delete();
+        if ($request->has('hapus_file')) {
+            foreach ($request->hapus_file as $fileId) {
+                $file = PostFile::find($fileId);
+
+                if ($file && $file->post_id == $post->id) {
+                    Storage::disk('public')->delete($file->file);
+                    $file->delete();
+                }
             }
         }
-    }
 
-    // Update data utama
-    $post->update([
-        'nomor_so' => $request->nomor_so,
-        'nama_barang' => $request->nama_barang,
-        'tanggal' => $request->tanggal,
-        'description' => $request->description,
-    ]);
+        $post->update([
+            'nomor_so' => $request->nomor_so,
+            'nama_barang' => $request->nama_barang,
+            'tanggal' => $request->tanggal,
+            'description' => $request->description,
+        ]);
 
-    // Tambah foto baru
-    if ($request->hasFile('foto')) {
-        foreach ($request->file('foto') as $foto) {
-            $path = $foto->store('foto', 'public');
+        if ($request->hasFile('foto')) {
+            foreach ($request->file('foto') as $foto) {
+                $path = $foto->store('foto', 'public');
 
-            $post->files()->create([
-                'type' => 'foto',
-                'file' => $path,
-            ]);
+                $post->files()->create([
+                    'type' => 'foto',
+                    'file' => $path,
+                ]);
+            }
         }
-    }
 
-    // Tambah video baru
-    if ($request->hasFile('video')) {
-        foreach ($request->file('video') as $video) {
-            $path = $video->store('video', 'public');
+        if ($request->hasFile('video')) {
+            foreach ($request->file('video') as $video) {
+                $path = $video->store('video', 'public');
 
-            $post->files()->create([
-                'type' => 'video',
-                'file' => $path,
-            ]);
+                $post->files()->create([
+                    'type' => 'video',
+                    'file' => $path,
+                ]);
+            }
         }
-    }
 
-    return redirect('/wilayah/'.$wilayah->id.'/foto-video/'.$post->id)
-        ->with('success', 'Data berhasil diupdate');
-}
+        return redirect('/wilayah/'.$wilayah->id.'/foto-video/'.$post->id)
+            ->with('success', 'Data berhasil diupdate');
+    }
 
     public function destroy(Wilayah $wilayah, Post $post)
-    {
-        foreach ($post->files as $file) {
-            Storage::disk('public')->delete($file->file);
-        }
+{
+    $this->adminOnly();
+    $this->checkPostBelongsToWilayah($wilayah, $post);
 
-        $post->delete();
-
-        return redirect('/wilayah/'.$wilayah->id.'/foto-video')
-            ->with('success', 'Data berhasil dihapus');
+    foreach ($post->files as $file) {
+        Storage::disk('public')->delete($file->file);
+        $file->delete();
     }
 
-    public function show(Wilayah $wilayah, Post $post)
-    {
-    $post->load('files');
+    $post->delete();
 
-    return view('posts.show', compact('wilayah', 'post'));
-    }
+    return redirect('/wilayah/'.$wilayah->id.'/foto-video')
+        ->with('success', 'Data berhasil dihapus');
+}
 }

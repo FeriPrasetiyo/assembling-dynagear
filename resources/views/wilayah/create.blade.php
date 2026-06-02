@@ -12,7 +12,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
 
-        <a class="navbar-brand" href="/dashboard">
+        <a class="navbar-brand" href="/wilayah">
             <img src="{{ asset('img/logo/dynagearlogo.jpg') }}"
                  width="40"
                  height="40"
@@ -38,8 +38,31 @@
 
         <div class="card-body">
 
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form action="/wilayah" method="POST">
                 @csrf
+
+                <div class="mb-3">
+                    <label class="form-label">User Pemilik Wilayah</label>
+                    <select name="user_id" class="form-control" required>
+                        <option value="">-- Pilih User --</option>
+
+                        @foreach($users as $user)
+                            <option value="{{ $user->id }}">
+                                {{ $user->name }} - {{ $user->email }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <div class="mb-3">
                     <label class="form-label">Nama Wilayah</label>
@@ -47,6 +70,7 @@
                            name="nama_wilayah"
                            class="form-control"
                            placeholder="Contoh: Jakarta"
+                           value="{{ old('nama_wilayah') }}"
                            required>
                 </div>
 
