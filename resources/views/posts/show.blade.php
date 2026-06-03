@@ -12,7 +12,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
 
-        <a class="navbar-brand" href="/dashboard">
+        <a class="navbar-brand" href="/wilayah">
             <img src="{{ asset('img/logo/dynagearlogo.jpg') }}"
                  width="40"
                  height="40"
@@ -20,109 +20,176 @@
             Dynagear
         </a>
 
-        <a href="/wilayah/{{ $wilayah->id }}/foto-video" class="btn btn-light btn-sm">
-            Kembali
-        </a>
+        <div>
+            <a href="/wilayah/{{ $wilayah->id }}/foto-video"
+               class="btn btn-light btn-sm">
+                Kembali
+            </a>
+        </div>
 
     </div>
 </nav>
 
-<div class="container mt-4">
+<div class="container mt-4 mb-5">
 
-    <div class="card shadow border-0 mb-4">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Detail Data</h4>
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
         </div>
+    @endif
+
+    <div class="card shadow mb-4">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Detail Data</h4>
+
+            @if(auth()->user()->role === 'admin')
+                <a href="/wilayah/{{ $wilayah->id }}/foto-video/{{ $post->id }}/edit"
+                   class="btn btn-warning btn-sm">
+                    Edit Data
+                </a>
+            @endif
+        </div>
+
         <div class="card-body">
-    <p><strong>Nomor SO:</strong> {{ $post->nomor_so }}</p>
-    <p><strong>Nama Barang:</strong> {{ $post->nama_barang }}</p>
-    <p><strong>Tanggal:</strong> {{ $post->tanggal }}</p>
-    <p><strong>Wilayah:</strong> {{ $wilayah->nama_wilayah }}</p>
-    <p><strong>Deskripsi:</strong> {{ $post->description }}</p>
 
-    <hr>
+            <table class="table table-bordered">
+                <tr>
+                    <th width="200">Wilayah</th>
+                    <td>{{ $wilayah->nama_wilayah }}</td>
+                </tr>
 
-    <a href="/wilayah/{{ $wilayah->id }}/foto-video/{{ $post->id }}/edit"
-       class="btn btn-warning">
-        Edit Data
-    </a>
+                <tr>
+                    <th>Nomor SO</th>
+                    <td>{{ $post->nomor_so }}</td>
+                </tr>
 
-    <form action="/wilayah/{{ $wilayah->id }}/foto-video/{{ $post->id }}"
-          method="POST"
-          class="d-inline">
+                <tr>
+                    <th>Nama Barang</th>
+                    <td>{{ $post->nama_barang }}</td>
+                </tr>
 
-        @csrf
-        @method('DELETE')
+                <tr>
+                    <th>Tanggal</th>
+                    <td>{{ $post->tanggal }}</td>
+                </tr>
 
-        <button type="submit"
-                class="btn btn-danger"
-                onclick="return confirm('Yakin hapus data ini?')">
-            Hapus Data
-        </button>
+                <tr>
+                    <th>Deskripsi</th>
+                    <td>{{ $post->description ?? '-' }}</td>
+                </tr>
+            </table>
 
-    </form>
-</div>
+        </div>
     </div>
 
-    <h4>Foto</h4>
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Foto</h5>
+        </div>
 
-    <div class="row mb-4">
-        @forelse($post->files->where('type', 'foto') as $file)
-            <div class="col-md-4 mb-3">
-                <div class="card shadow">
-                    <img src="{{ asset('storage/'.$file->file) }}"
-                         class="card-img-top"
-                         style="height:250px; object-fit:cover;">
+        <div class="card-body">
 
-                    <div class="card-body text-center">
-                        <a href="{{ asset('storage/'.$file->file) }}"
-                           target="_blank"
-                           class="btn btn-info btn-sm">
-                            Lihat Foto
-                        </a>
+            <div class="row">
+
+                @forelse($post->files->where('type','foto') as $file)
+
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+
+                            <a href="{{ asset('storage/'.$file->file) }}" target="_blank">
+                                <img src="{{ asset('storage/'.$file->file) }}"
+                                     class="card-img-top"
+                                     style="height:260px; object-fit:cover;">
+                            </a>
+
+                            @if(auth()->user()->role === 'admin')
+                                <div class="card-body">
+                                    <form action="/wilayah/{{ $wilayah->id }}/foto-video/{{ $post->id }}/file/{{ $file->id }}"
+                                          method="POST"
+                                          onsubmit="return confirm('Yakin hapus foto ini?')">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm w-100">
+                                            Hapus Foto
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
+
+                        </div>
                     </div>
-                </div>
+
+                @empty
+
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            Tidak ada foto.
+                        </div>
+                    </div>
+
+                @endforelse
+
             </div>
-        @empty
-            <div class="col-md-12">
-                <div class="alert alert-info">
-                    Tidak ada foto.
-                </div>
-            </div>
-        @endforelse
+
+        </div>
     </div>
 
-    <h4>Video</h4>
+    <div class="card shadow mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Video</h5>
+        </div>
 
-    <div class="row">
-        @forelse($post->files->where('type', 'video') as $file)
-            <div class="col-md-6 mb-3">
-                <div class="card shadow">
+        <div class="card-body">
 
-                    <div class="card-body">
-                        <video width="100%" controls>
-                            <source src="{{ asset('storage/'.$file->file) }}">
-                            Browser tidak mendukung video.
-                        </video>
+            <div class="row">
+
+                @forelse($post->files->where('type','video') as $file)
+
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+
+                            <div class="card-body">
+
+                                <video width="100%" controls>
+                                    <source src="{{ asset('storage/'.$file->file) }}">
+                                    Browser tidak mendukung video.
+                                </video>
+
+                                @if(auth()->user()->role === 'admin')
+                                    <form action="/wilayah/{{ $wilayah->id }}/foto-video/{{ $post->id }}/file/{{ $file->id }}"
+                                          method="POST"
+                                          class="mt-3"
+                                          onsubmit="return confirm('Yakin hapus video ini?')">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm w-100">
+                                            Hapus Video
+                                        </button>
+                                    </form>
+                                @endif
+
+                            </div>
+
+                        </div>
                     </div>
 
-                    <div class="card-footer text-center">
-                        <a href="{{ asset('storage/'.$file->file) }}"
-                           target="_blank"
-                           class="btn btn-info btn-sm">
-                            Buka Video
-                        </a>
+                @empty
+
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            Tidak ada video.
+                        </div>
                     </div>
 
-                </div>
+                @endforelse
+
             </div>
-        @empty
-            <div class="col-md-12">
-                <div class="alert alert-info">
-                    Tidak ada video.
-                </div>
-            </div>
-        @endforelse
+
+        </div>
     </div>
 
 </div>

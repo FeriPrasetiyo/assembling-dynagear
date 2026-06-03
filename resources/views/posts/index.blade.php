@@ -29,7 +29,7 @@
     </div>
 </nav>
 
-<div class="container mt-4">
+<div class="container mt-4 mb-5">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
 
@@ -41,10 +41,12 @@
             </p>
         </div>
 
-        <a href="/wilayah/{{ $wilayah->id }}/foto-video/create"
-           class="btn btn-success">
-            + Tambah Data
-        </a>
+        @if(auth()->user()->role === 'admin')
+            <a href="/wilayah/{{ $wilayah->id }}/foto-video/create"
+               class="btn btn-success">
+                + Tambah Data
+            </a>
+        @endif
 
     </div>
 
@@ -55,45 +57,40 @@
     @endif
 
     <div class="card shadow">
-
         <div class="card-body">
 
-            <div class="table-responsive">
-                <div class="row mb-3">
+            <div class="row mb-3">
+                <div class="col-md-6">
 
-    <div class="col-md-6">
+                    <form method="GET">
+                        <div class="input-group">
 
-        <form method="GET">
+                            <input type="text"
+                                   name="search"
+                                   class="form-control"
+                                   placeholder="Cari Nomor SO / Nama Barang..."
+                                   value="{{ request('search') }}">
 
-            <div class="input-group">
+                            <button class="btn btn-primary">
+                                Cari
+                            </button>
 
-                <input type="text"
-                       name="search"
-                       class="form-control"
-                       placeholder="Cari Nomor SO / Nama Barang..."
-                       value="{{ request('search') }}">
+                            <a href="/wilayah/{{ $wilayah->id }}/foto-video"
+                               class="btn btn-secondary">
+                                Reset
+                            </a>
 
-                <button class="btn btn-primary">
-                    Cari
-                </button>
+                        </div>
+                    </form>
 
-                <a href="/wilayah/{{ $wilayah->id }}/foto-video"
-                   class="btn btn-secondary">
-                    Reset
-                </a>
-
+                </div>
             </div>
 
-        </form>
+            <div class="table-responsive">
 
-    </div>
-
-</div>
-
-                <table class="table table-bordered table-striped">
+                <table class="table table-bordered table-striped align-middle">
 
                     <thead class="table-primary">
-
                         <tr>
                             <th>No</th>
                             <th>Nomor SO</th>
@@ -104,51 +101,48 @@
                             <th>Video</th>
                             <th width="250">Aksi</th>
                         </tr>
-
                     </thead>
 
                     <tbody>
 
-                        @forelse($posts as $post)
+                    @forelse($posts as $post)
 
-                            <tr>
+                        <tr>
+                            <td>
+                                {{ ($posts->currentPage() - 1) * $posts->perPage() + $loop->iteration }}
+                            </td>
 
-                                <td>
-    {{ ($posts->currentPage() - 1) * $posts->perPage() + $loop->iteration }}
-</td>
+                            <td>
+                                {{ $post->nomor_so }}
+                            </td>
 
-                                <td>
-                                    {{ $post->nomor_so }}
-                                </td>
+                            <td>
+                                {{ $post->nama_barang }}
+                            </td>
 
-                                <td>
-                                    {{ $post->nama_barang }}
-                                </td>
+                            <td>
+                                {{ $post->tanggal }}
+                            </td>
 
-                                <td>
-                                    {{ $post->tanggal }}
-                                </td>
+                            <td>
+                                {{ $post->description }}
+                            </td>
 
-                                <td>
-                                    {{ $post->description }}
-                                </td>
+                            <td>
+                                {{ $post->files->where('type','foto')->count() }} Foto
+                            </td>
 
-                                <td>
-                                    {{ $post->files->where('type','foto')->count() }}
-                                    Foto
-                                </td>
+                            <td>
+                                {{ $post->files->where('type','video')->count() }} Video
+                            </td>
 
-                                <td>
-                                    {{ $post->files->where('type','video')->count() }}
-                                    Video
-                                </td>
+                            <td>
+                                <a href="/wilayah/{{ $wilayah->id }}/foto-video/{{ $post->id }}"
+                                   class="btn btn-info btn-sm">
+                                    Detail
+                                </a>
 
-                                <td>
-
-                                    <a href="/wilayah/{{ $wilayah->id }}/foto-video/{{ $post->id }}"
-                                       class="btn btn-info btn-sm">
-                                        Detail
-                                    </a>
+                                @if(auth()->user()->role === 'admin')
 
                                     <a href="/wilayah/{{ $wilayah->id }}/foto-video/{{ $post->id }}/edit"
                                        class="btn btn-warning btn-sm">
@@ -170,35 +164,31 @@
 
                                     </form>
 
-                                </td>
+                                @endif
+                            </td>
+                        </tr>
 
-                            </tr>
+                    @empty
 
-                        @empty
+                        <tr>
+                            <td colspan="8" class="text-center">
+                                Belum ada data.
+                            </td>
+                        </tr>
 
-                            <tr>
-
-                                <td colspan="8" class="text-center">
-
-                                    Belum ada data.
-
-                                </td>
-
-                            </tr>
-
-                        @endforelse
+                    @endforelse
 
                     </tbody>
 
                 </table>
+
                 <div class="mt-3">
-    {{ $posts->withQueryString()->links() }}
-</div>
+                    {{ $posts->withQueryString()->links() }}
+                </div>
 
             </div>
 
         </div>
-
     </div>
 
 </div>
