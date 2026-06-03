@@ -37,44 +37,66 @@ class PostController extends Controller
     }
 
     private function uploadWatermarkedPhoto($foto, Wilayah $wilayah, Request $request, Post $post)
-    {
-        $filename = time().'_'.uniqid().'.jpg';
+{
+    $filename = time().'_'.uniqid().'.jpg';
 
-        $manager = ImageManager::usingDriver(Driver::class);
+    $manager = ImageManager::usingDriver(Driver::class);
+    $image = $manager->decodePath($foto->getPathname());
 
-        $image = $manager->decodePath($foto->getPathname());
+    $fontSize = max(36, intval($image->width() / 35));
+    $lineHeight = $fontSize + 18;
+    $margin = 60;
 
-        $fontSize = max(120, intval($image->width() / 12));
+    $lines = [
+        'PT DYNAGEAR',
+        'WILAYAH : '.strtoupper($wilayah->nama_wilayah),
+        'SO : '.$request->nomor_so,
+        date('d-m-Y H:i'),
+    ];
 
-        $watermark =
-            "PT DYNAGEAR\n".
-            "WILAYAH : ".strtoupper($wilayah->nama_wilayah)."\n".
-            "SO : ".$request->nomor_so."\n".
-            date('d-m-Y H:i');
+    $x = $margin;
+    $y = $image->height() - $margin - (count($lines) - 1) * $lineHeight;
 
+    foreach ($lines as $index => $line) {
+        $lineY = $y + ($index * $lineHeight);
+
+        // Shadow hitam supaya terlihat di background terang
         $image->text(
-            $watermark,
-            $image->width() - 250,
-            $image->height() - 250,
+            $line,
+            $x + 3,
+            $lineY + 3,
             function ($font) use ($fontSize) {
                 $font->size($fontSize);
-                $font->color('#ffffff');
-                $font->align('right');
+                $font->color('#000000');
+                $font->align('left');
             }
         );
 
-        $encoded = $image->encodeUsingFileExtension('jpg', quality: 85);
-
-        Storage::disk('public')->put(
-            'foto/'.$filename,
-            (string) $encoded
+        // Text putih
+        $image->text(
+            $line,
+            $x,
+            $lineY,
+            function ($font) use ($fontSize) {
+                $font->size($fontSize);
+                $font->color('#ffffff');
+                $font->align('left');
+            }
         );
-
-        $post->files()->create([
-            'type' => 'foto',
-            'file' => 'foto/'.$filename,
-        ]);
     }
+
+    $encoded = $image->encodeUsingFileExtension('jpg', quality: 85);
+
+    Storage::disk('public')->put(
+        'foto/'.$filename,
+        (string) $encoded
+    );
+
+    $post->files()->create([
+        'type' => 'foto',
+        'file' => 'foto/'.$filename,
+    ]);
+}
 
     public function index(Request $request, Wilayah $wilayah)
     {
