@@ -37,40 +37,42 @@ class PostController extends Controller
     }
 
     private function uploadWatermarkedPhoto($foto, Wilayah $wilayah, Request $request, Post $post)
-    {
-        $filename = time().'_'.uniqid().'.jpg';
+{
+    $filename = time().'_'.uniqid().'.jpg';
 
-        $manager = ImageManager::usingDriver(Driver::class);
+    $manager = ImageManager::usingDriver(Driver::class);
 
-        $image = $manager->decodePath($foto->getPathname());
+    $image = $manager->decodePath($foto->getPathname());
 
-        $watermark =
-            "PT DYNAGEAR\n".
-            "Wilayah : ".$wilayah->nama_wilayah."\n".
-            "SO : ".$request->nomor_so."\n".
-            "Tanggal : ".date('d-m-Y H:i');
+    $watermark =
+        "PT DYNAGEAR\n".
+        "Wilayah : ".$wilayah->nama_wilayah."\n".
+        "SO : ".$request->nomor_so."\n".
+        "Tanggal : ".date('d-m-Y H:i');
 
-            $image->text(
-    $watermark,
-    $image->width() - 30,
-    $image->height() - 30,
-    function ($font) {
-        $font->size(20);
-        $font->color('#ffffff');
-        $font->align('right');
-    }
-);
+    $image->text(
+        $watermark,
+        $image->width() - 30,
+        $image->height() - 30,
+        function ($font) {
+            $font->size(20);
+            $font->color('#ffffff');
+            $font->align('right');
+        }
+    );
 
-Storage::disk('public')->put(
-    'foto/'.$filename,
-    (string) $image->toJpeg(85)
-);
+    $encoded = $image->encodeUsingFileExtension('jpg', quality: 85);
 
-$post->files()->create([
-    'type' => 'foto',
-    'file' => 'foto/'.$filename,
-]);
-    }
+    Storage::disk('public')->put(
+        'foto/'.$filename,
+        (string) $encoded
+    );
+
+    $post->files()->create([
+        'type' => 'foto',
+        'file' => 'foto/'.$filename,
+    ]);
+}
 
     public function index(Request $request, Wilayah $wilayah)
     {
