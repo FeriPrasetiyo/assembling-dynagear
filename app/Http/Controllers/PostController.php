@@ -7,8 +7,6 @@ use App\Models\Wilayah;
 use App\Models\PostFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
 
 class PostController extends Controller
 {
@@ -37,70 +35,94 @@ class PostController extends Controller
     }
 
     private function uploadWatermarkedPhoto($foto, Wilayah $wilayah, Request $request, Post $post)
-    {
-        $filename = time().'_'.uniqid().'.jpg';
+{
+    $filename = time().'_'.uniqid().'.jpg';
+    $savePath = storage_path('app/public/foto/'.$filename);
 
-        $manager = ImageManager::usingDriver(Driver::class);
-        $image = $manager->decodePath($foto->getPathname());
+    $sourcePath = $foto->getPathname();
+    $mime = $foto->getMimeType();
 
-        $fontSize = max(60, intval($image->width() / 25));
-        $lineHeight = intval($fontSize * 1.35);
-
-        $marginX = max(60, intval($image->width() * 0.04));
-        $marginY = max(80, intval($image->height() * 0.07));
-
-        $lines = [
-            'PT DYNAGEAR',
-            'WILAYAH : '.strtoupper($wilayah->nama_wilayah),
-            'SO : '.$request->nomor_so,
-            date('d-m-Y H:i'),
-        ];
-
-        $x = $marginX;
-        $y = $image->height() - $marginY - ((count($lines) - 1) * $lineHeight);
-
-        foreach ($lines as $index => $line) {
-            $lineY = $y + ($index * $lineHeight);
-
-            // Shadow hitam tebal
-            foreach ([[5,5], [-5,5], [5,-5], [-5,-5], [0,5], [5,0]] as $shadow) {
-                $image->text(
-                    $line,
-                    $x + $shadow[0],
-                    $lineY + $shadow[1],
-                    function ($font) use ($fontSize) {
-                        $font->size($fontSize);
-                        $font->color('#000000');
-                        $font->align('left');
-                    }
-                );
-            }
-
-            // Text putih utama
-            $image->text(
-                $line,
-                $x,
-                $lineY,
-                function ($font) use ($fontSize) {
-                    $font->size($fontSize);
-                    $font->color('#ffffff');
-                    $font->align('left');
-                }
-            );
-        }
-
-        $encoded = $image->encodeUsingFileExtension('jpg', quality: 85);
-
-        Storage::disk('public')->put(
-            'foto/'.$filename,
-            (string) $encoded
-        );
-
-        $post->files()->create([
-            'type' => 'foto',
-            'file' => 'foto/'.$filename,
-        ]);
+    if ($mime === 'image/png') {
+        $image = imagecreatefrompng($sourcePath);
+    } else {
+        $image = imagecreatefromjpeg($sourcePath);
     }
+
+    $width = imagesx($image);
+    $height = imagesy($image);
+
+    // Font
+    $fontPath = '/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf';
+
+    if (!file_exists($fontPath)) {
+        $fontPath = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
+    }
+
+    // Ukuran watermark
+    $fontSize = max(32, intval($width / 28));
+    $padding = intval($fontSize * 0.8);
+    $lineHeight = intval($fontSize * 1.45);
+
+    $lines = [
+        'PT DYNAGEAR',
+        'WILAYAH : '.strtoupper($wilayah->nama_wilayah),
+        'SO : '.$request->nomor_so,
+        date('d-m-Y H:i'),
+    ];
+
+    // Hitung ukuran box
+    $maxTextWidth = 0;
+
+    foreach ($lines as $line) {
+        $box = imagettfbbox($fontSize, 0, $fontPath, $line);
+        $textWidth = abs($box[4] - $box[0]);
+
+        if ($textWidth > $maxTextWidth) {
+            $maxTextWidth = $textWidth;
+        }
+    }
+
+    $boxWidth = $maxTextWidth + ($padding * 2);
+    $boxHeight = ($lineHeight * count($lines)) + ($padding * 1.3);
+
+    $boxX = intval($width * 0.035);
+    $boxY = $height - $boxHeight - intval($height * 0.04);
+
+    // Warna
+    $blackTransparent = imagecolorallocatealpha($image, 0, 0, 0, 45);
+    $white = imagecolorallocate($image, 255, 255, 255);
+    $black = imagecolorallocate($image, 0, 0, 0);
+
+    imagefilledrectangle(
+        $image,
+        $boxX,
+        $boxY,
+        $boxX + $boxWidth,
+        $boxY + $boxHeight,
+        $blackTransparent
+    );
+
+    $textX = $boxX + $padding;
+    $textY = $boxY + $padding + $fontSize;
+
+    foreach ($lines as $index => $line) {
+        $y = $textY + ($index * $lineHeight);
+
+        // Shadow hitam
+        imagettftext($image, $fontSize, 0, $textX + 3, $y + 3, $black, $fontPath, $line);
+
+        // Text putih
+        imagettftext($image, $fontSize, 0, $textX, $y, $white, $fontPath, $line);
+    }
+
+    imagejpeg($image, $savePath, 85);
+    imagedestroy($image);
+
+    $post->files()->create([
+        'type' => 'foto',
+        'file' => 'foto/'.$filename,
+    ]);
+}
 
     public function index(Request $request, Wilayah $wilayah)
     {
