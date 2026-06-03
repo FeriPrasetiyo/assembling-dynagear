@@ -35,94 +35,103 @@ class PostController extends Controller
     }
 
     private function uploadWatermarkedPhoto($foto, Wilayah $wilayah, Request $request, Post $post)
-{
-    $filename = time().'_'.uniqid().'.jpg';
-    $savePath = storage_path('app/public/foto/'.$filename);
+    {
+        $filename = time().'_'.uniqid().'.jpg';
+        $savePath = storage_path('app/public/foto/'.$filename);
 
-    $sourcePath = $foto->getPathname();
-    $mime = $foto->getMimeType();
+        $sourcePath = $foto->getPathname();
+        $mime = $foto->getMimeType();
 
-    if ($mime === 'image/png') {
-        $image = imagecreatefrompng($sourcePath);
-    } else {
-        $image = imagecreatefromjpeg($sourcePath);
-    }
-
-    $width = imagesx($image);
-    $height = imagesy($image);
-
-    // Font
-    $fontPath = '/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf';
-
-    if (!file_exists($fontPath)) {
-        $fontPath = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
-    }
-
-    // Ukuran watermark
-    $fontSize = max(32, intval($width / 28));
-    $padding = intval($fontSize * 0.8);
-    $lineHeight = intval($fontSize * 1.45);
-
-    $lines = [
-        'PT DYNAGEAR',
-        'WILAYAH : '.strtoupper($wilayah->nama_wilayah),
-        'SO : '.$request->nomor_so,
-        date('d-m-Y H:i'),
-    ];
-
-    // Hitung ukuran box
-    $maxTextWidth = 0;
-
-    foreach ($lines as $line) {
-        $box = imagettfbbox($fontSize, 0, $fontPath, $line);
-        $textWidth = abs($box[4] - $box[0]);
-
-        if ($textWidth > $maxTextWidth) {
-            $maxTextWidth = $textWidth;
+        if ($mime === 'image/png') {
+            $image = imagecreatefrompng($sourcePath);
+        } else {
+            $image = imagecreatefromjpeg($sourcePath);
         }
+
+        if (!$image) {
+            $path = $foto->store('foto', 'public');
+
+            $post->files()->create([
+                'type' => 'foto',
+                'file' => $path,
+            ]);
+
+            return;
+        }
+
+        $width = imagesx($image);
+        $height = imagesy($image);
+
+        $fontPath = '/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf';
+
+        if (!file_exists($fontPath)) {
+            $fontPath = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
+        }
+
+        $fontSize = max(36, intval($width / 24));
+        $padding = intval($fontSize * 0.8);
+        $lineHeight = intval($fontSize * 1.45);
+
+        $lines = [
+            'PT DYNAGEAR',
+            'WILAYAH : '.strtoupper($wilayah->nama_wilayah),
+            'SO : '.$request->nomor_so,
+            date('d-m-Y H:i'),
+        ];
+
+        if (file_exists($fontPath)) {
+            $maxTextWidth = 0;
+
+            foreach ($lines as $line) {
+                $box = imagettfbbox($fontSize, 0, $fontPath, $line);
+                $textWidth = abs($box[4] - $box[0]);
+
+                if ($textWidth > $maxTextWidth) {
+                    $maxTextWidth = $textWidth;
+                }
+            }
+
+            $boxWidth = $maxTextWidth + ($padding * 2);
+            $boxHeight = ($lineHeight * count($lines)) + intval($padding * 1.3);
+
+            $boxX = intval($width * 0.035);
+            $boxY = $height - $boxHeight - intval($height * 0.04);
+
+            $blackTransparent = imagecolorallocatealpha($image, 0, 0, 0, 45);
+            $white = imagecolorallocate($image, 255, 255, 255);
+            $black = imagecolorallocate($image, 0, 0, 0);
+
+            imagefilledrectangle(
+                $image,
+                $boxX,
+                $boxY,
+                $boxX + $boxWidth,
+                $boxY + $boxHeight,
+                $blackTransparent
+            );
+
+            $textX = $boxX + $padding;
+            $textY = $boxY + $padding + $fontSize;
+
+            foreach ($lines as $index => $line) {
+                $y = $textY + ($index * $lineHeight);
+
+                imagettftext($image, $fontSize, 0, $textX + 3, $y + 3, $black, $fontPath, $line);
+                imagettftext($image, $fontSize, 0, $textX, $y, $white, $fontPath, $line);
+            }
+        } else {
+            $white = imagecolorallocate($image, 255, 255, 255);
+            imagestring($image, 5, 30, $height - 100, 'PT DYNAGEAR - '.$request->nomor_so, $white);
+        }
+
+        imagejpeg($image, $savePath, 85);
+        imagedestroy($image);
+
+        $post->files()->create([
+            'type' => 'foto',
+            'file' => 'foto/'.$filename,
+        ]);
     }
-
-    $boxWidth = $maxTextWidth + ($padding * 2);
-    $boxHeight = ($lineHeight * count($lines)) + ($padding * 1.3);
-
-    $boxX = intval($width * 0.035);
-    $boxY = $height - $boxHeight - intval($height * 0.04);
-
-    // Warna
-    $blackTransparent = imagecolorallocatealpha($image, 0, 0, 0, 45);
-    $white = imagecolorallocate($image, 255, 255, 255);
-    $black = imagecolorallocate($image, 0, 0, 0);
-
-    imagefilledrectangle(
-        $image,
-        $boxX,
-        $boxY,
-        $boxX + $boxWidth,
-        $boxY + $boxHeight,
-        $blackTransparent
-    );
-
-    $textX = $boxX + $padding;
-    $textY = $boxY + $padding + $fontSize;
-
-    foreach ($lines as $index => $line) {
-        $y = $textY + ($index * $lineHeight);
-
-        // Shadow hitam
-        imagettftext($image, $fontSize, 0, $textX + 3, $y + 3, $black, $fontPath, $line);
-
-        // Text putih
-        imagettftext($image, $fontSize, 0, $textX, $y, $white, $fontPath, $line);
-    }
-
-    imagejpeg($image, $savePath, 85);
-    imagedestroy($image);
-
-    $post->files()->create([
-        'type' => 'foto',
-        'file' => 'foto/'.$filename,
-    ]);
-}
 
     public function index(Request $request, Wilayah $wilayah)
     {
@@ -161,7 +170,7 @@ class PostController extends Controller
             'nama_barang' => 'required',
             'tanggal' => 'required|date',
             'description' => 'nullable',
-            'foto.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'foto.*' => 'nullable|image|mimes:jpg,jpeg,png|max:10240',
             'video.*' => 'nullable|file|mimes:mp4,mov,avi,mkv,webm|max:102400',
         ]);
 
@@ -224,7 +233,7 @@ class PostController extends Controller
             'nama_barang' => 'required',
             'tanggal' => 'required|date',
             'description' => 'nullable',
-            'foto.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'foto.*' => 'nullable|image|mimes:jpg,jpeg,png|max:10240',
             'video.*' => 'nullable|file|mimes:mp4,mov,avi,mkv,webm|max:102400',
         ]);
 
