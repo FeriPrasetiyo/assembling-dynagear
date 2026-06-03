@@ -37,41 +37,44 @@ class PostController extends Controller
     }
 
     private function uploadWatermarkedPhoto($foto, Wilayah $wilayah, Request $request, Post $post)
-{
-    $filename = time().'_'.uniqid().'.jpg';
+    {
+        $filename = time().'_'.uniqid().'.jpg';
 
-    $manager = ImageManager::usingDriver(Driver::class);
+        $manager = ImageManager::usingDriver(Driver::class);
 
-    $image = $manager->decodePath($foto->getPathname());
+        $image = $manager->decodePath($foto->getPathname());
 
-    $watermark =
-    "PT DYNAGEAR\n".
-    "WILAYAH : ".strtoupper($wilayah->nama_wilayah)."\n".
-    "SO : ".$request->nomor_so."\n".date('d-m-Y H:i');
+        $fontSize = max(120, intval($image->width() / 12));
 
-    $image->text(
-    $watermark,
-    $image->width() - 100,
-    $image->height() - 100,
-    function ($font) {
-        $font->size(50);
-        $font->color('#ffffff');
-        $font->align('right');
+        $watermark =
+            "PT DYNAGEAR\n".
+            "WILAYAH : ".strtoupper($wilayah->nama_wilayah)."\n".
+            "SO : ".$request->nomor_so."\n".
+            date('d-m-Y H:i');
+
+        $image->text(
+            $watermark,
+            $image->width() - 250,
+            $image->height() - 250,
+            function ($font) use ($fontSize) {
+                $font->size($fontSize);
+                $font->color('#ffffff');
+                $font->align('right');
+            }
+        );
+
+        $encoded = $image->encodeUsingFileExtension('jpg', quality: 85);
+
+        Storage::disk('public')->put(
+            'foto/'.$filename,
+            (string) $encoded
+        );
+
+        $post->files()->create([
+            'type' => 'foto',
+            'file' => 'foto/'.$filename,
+        ]);
     }
-);
-
-    $encoded = $image->encodeUsingFileExtension('jpg', quality: 85);
-
-    Storage::disk('public')->put(
-        'foto/'.$filename,
-        (string) $encoded
-    );
-
-    $post->files()->create([
-        'type' => 'foto',
-        'file' => 'foto/'.$filename,
-    ]);
-}
 
     public function index(Request $request, Wilayah $wilayah)
     {
