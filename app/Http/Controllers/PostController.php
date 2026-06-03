@@ -58,7 +58,6 @@ class PostController extends Controller
                 $font->size(20);
                 $font->color('#ffffff');
                 $font->align('right');
-                $font->valign('bottom');
             }
         );
 
