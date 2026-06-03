@@ -7,7 +7,8 @@ use App\Models\Wilayah;
 use App\Models\PostFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class PostController extends Controller
 {
@@ -15,7 +16,7 @@ class PostController extends Controller
     {
         if (
             auth()->user()->role !== 'admin' &&
-            $wilayah->user_id !== auth()->id()
+            (int) $wilayah->user_id !== (int) auth()->id()
         ) {
             abort(403);
         }
@@ -30,9 +31,45 @@ class PostController extends Controller
 
     private function checkPostBelongsToWilayah(Wilayah $wilayah, Post $post)
     {
-        if ($post->wilayah_id !== $wilayah->id) {
+        if ((int) $post->wilayah_id !== (int) $wilayah->id) {
             abort(404);
         }
+    }
+
+    private function uploadWatermarkedPhoto($foto, Wilayah $wilayah, Request $request, Post $post)
+    {
+        $filename = time().'_'.uniqid().'.jpg';
+
+        $manager = new ImageManager(new Driver());
+        $image = $manager->read($foto->getPathname());
+
+        $watermark =
+            "PT DYNAGEAR\n".
+            "Wilayah : ".$wilayah->nama_wilayah."\n".
+            "SO : ".$request->nomor_so."\n".
+            "Tanggal : ".date('d-m-Y H:i');
+
+        $image->text(
+            $watermark,
+            $image->width() - 30,
+            $image->height() - 30,
+            function ($font) {
+                $font->size(20);
+                $font->color('#ffffff');
+                $font->align('right');
+                $font->valign('bottom');
+            }
+        );
+
+        Storage::disk('public')->put(
+            'foto/'.$filename,
+            (string) $image->toJpeg()
+        );
+
+        $post->files()->create([
+            'type' => 'foto',
+            'file' => 'foto/'.$filename,
+        ]);
     }
 
     public function index(Request $request, Wilayah $wilayah)
@@ -53,11 +90,7 @@ class PostController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('posts.index', compact(
-            'wilayah',
-            'posts',
-            'search'
-        ));
+        return view('posts.index', compact('wilayah', 'posts', 'search'));
     }
 
     public function create(Wilayah $wilayah)
@@ -76,7 +109,6 @@ class PostController extends Controller
             'nama_barang' => 'required',
             'tanggal' => 'required|date',
             'description' => 'nullable',
-
             'foto.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'video.*' => 'nullable|file|mimes:mp4,mov,avi,mkv,webm|max:102400',
         ]);
@@ -91,12 +123,7 @@ class PostController extends Controller
 
         if ($request->hasFile('foto')) {
             foreach ($request->file('foto') as $foto) {
-                $path = $foto->store('foto', 'public');
-
-                $post->files()->create([
-                    'type' => 'foto',
-                    'file' => $path,
-                ]);
+                $this->uploadWatermarkedPhoto($foto, $wilayah, $request, $post);
             }
         }
 
@@ -145,7 +172,6 @@ class PostController extends Controller
             'nama_barang' => 'required',
             'tanggal' => 'required|date',
             'description' => 'nullable',
-
             'foto.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'video.*' => 'nullable|file|mimes:mp4,mov,avi,mkv,webm|max:102400',
         ]);
@@ -154,7 +180,7 @@ class PostController extends Controller
             foreach ($request->hapus_file as $fileId) {
                 $file = PostFile::find($fileId);
 
-                if ($file && $file->post_id == $post->id) {
+                if ($file && (int) $file->post_id === (int) $post->id) {
                     Storage::disk('public')->delete($file->file);
                     $file->delete();
                 }
@@ -170,12 +196,7 @@ class PostController extends Controller
 
         if ($request->hasFile('foto')) {
             foreach ($request->file('foto') as $foto) {
-                $path = $foto->store('foto', 'public');
-
-                $post->files()->create([
-                    'type' => 'foto',
-                    'file' => $path,
-                ]);
+                $this->uploadWatermarkedPhoto($foto, $wilayah, $request, $post);
             }
         }
 
@@ -195,18 +216,18 @@ class PostController extends Controller
     }
 
     public function destroy(Wilayah $wilayah, Post $post)
-{
-    $this->adminOnly();
-    $this->checkPostBelongsToWilayah($wilayah, $post);
+    {
+        $this->adminOnly();
+        $this->checkPostBelongsToWilayah($wilayah, $post);
 
-    foreach ($post->files as $file) {
-        Storage::disk('public')->delete($file->file);
-        $file->delete();
+        foreach ($post->files as $file) {
+            Storage::disk('public')->delete($file->file);
+            $file->delete();
+        }
+
+        $post->delete();
+
+        return redirect('/wilayah/'.$wilayah->id.'/foto-video')
+            ->with('success', 'Data berhasil dihapus');
     }
-
-    $post->delete();
-
-    return redirect('/wilayah/'.$wilayah->id.'/foto-video')
-        ->with('success', 'Data berhasil dihapus');
-}
 }
