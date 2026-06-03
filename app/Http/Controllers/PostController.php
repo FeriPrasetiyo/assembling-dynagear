@@ -37,86 +37,70 @@ class PostController extends Controller
     }
 
     private function uploadWatermarkedPhoto($foto, Wilayah $wilayah, Request $request, Post $post)
-{
-    $filename = time().'_'.uniqid().'.jpg';
+    {
+        $filename = time().'_'.uniqid().'.jpg';
 
-    $manager = ImageManager::usingDriver(Driver::class);
-    $image = $manager->decodePath($foto->getPathname());
+        $manager = ImageManager::usingDriver(Driver::class);
+        $image = $manager->decodePath($foto->getPathname());
 
-    $fontSize = max(42, intval($image->width() / 32));
-    $smallFontSize = max(34, intval($fontSize * 0.82));
+        $fontSize = max(60, intval($image->width() / 25));
+        $lineHeight = intval($fontSize * 1.35);
 
-    $margin = max(40, intval($image->width() * 0.035));
-    $padding = max(28, intval($image->width() * 0.025));
-    $lineHeight = intval($fontSize * 1.35);
+        $marginX = max(60, intval($image->width() * 0.04));
+        $marginY = max(80, intval($image->height() * 0.07));
 
-    $boxWidth = intval($image->width() * 0.38);
-    $boxHeight = ($lineHeight * 4) + ($padding * 2);
+        $lines = [
+            'PT DYNAGEAR',
+            'WILAYAH : '.strtoupper($wilayah->nama_wilayah),
+            'SO : '.$request->nomor_so,
+            date('d-m-Y H:i'),
+        ];
 
-    $boxX = $margin;
-    $boxY = $image->height() - $boxHeight - $margin;
+        $x = $marginX;
+        $y = $image->height() - $marginY - ((count($lines) - 1) * $lineHeight);
 
-    // Buat background hitam transparan
-    $box = imagecreatetruecolor($boxWidth, $boxHeight);
-    imagesavealpha($box, true);
+        foreach ($lines as $index => $line) {
+            $lineY = $y + ($index * $lineHeight);
 
-    $transparent = imagecolorallocatealpha($box, 0, 0, 0, 127);
-    imagefill($box, 0, 0, $transparent);
+            // Shadow hitam tebal
+            foreach ([[5,5], [-5,5], [5,-5], [-5,-5], [0,5], [5,0]] as $shadow) {
+                $image->text(
+                    $line,
+                    $x + $shadow[0],
+                    $lineY + $shadow[1],
+                    function ($font) use ($fontSize) {
+                        $font->size($fontSize);
+                        $font->color('#000000');
+                        $font->align('left');
+                    }
+                );
+            }
 
-    $black = imagecolorallocatealpha($box, 0, 0, 0, 35);
-    imagefilledrectangle($box, 0, 0, $boxWidth, $boxHeight, $black);
+            // Text putih utama
+            $image->text(
+                $line,
+                $x,
+                $lineY,
+                function ($font) use ($fontSize) {
+                    $font->size($fontSize);
+                    $font->color('#ffffff');
+                    $font->align('left');
+                }
+            );
+        }
 
-    $boxPath = storage_path('app/temp_watermark_box_'.uniqid().'.png');
-    imagepng($box, $boxPath);
-    imagedestroy($box);
+        $encoded = $image->encodeUsingFileExtension('jpg', quality: 85);
 
-    // Tempel background ke foto
-    $overlay = $manager->decodePath($boxPath);
-    $image->place($overlay, 'top-left', $boxX, $boxY);
+        Storage::disk('public')->put(
+            'foto/'.$filename,
+            (string) $encoded
+        );
 
-    if (file_exists($boxPath)) {
-        unlink($boxPath);
+        $post->files()->create([
+            'type' => 'foto',
+            'file' => 'foto/'.$filename,
+        ]);
     }
-
-    $textX = $boxX + $padding;
-    $textY = $boxY + $padding;
-
-    $image->text('PT DYNAGEAR', $textX, $textY, function ($font) use ($fontSize) {
-        $font->size($fontSize);
-        $font->color('#ffffff');
-        $font->align('left');
-    });
-
-    $image->text('WILAYAH : '.strtoupper($wilayah->nama_wilayah), $textX, $textY + ($lineHeight * 1.2), function ($font) use ($smallFontSize) {
-        $font->size($smallFontSize);
-        $font->color('#ffffff');
-        $font->align('left');
-    });
-
-    $image->text('SO : '.$request->nomor_so, $textX, $textY + ($lineHeight * 2.2), function ($font) use ($smallFontSize) {
-        $font->size($smallFontSize);
-        $font->color('#ffffff');
-        $font->align('left');
-    });
-
-    $image->text(date('d-m-Y H:i'), $textX, $textY + ($lineHeight * 3.2), function ($font) use ($smallFontSize) {
-        $font->size($smallFontSize);
-        $font->color('#ffffff');
-        $font->align('left');
-    });
-
-    $encoded = $image->encodeUsingFileExtension('jpg', quality: 85);
-
-    Storage::disk('public')->put(
-        'foto/'.$filename,
-        (string) $encoded
-    );
-
-    $post->files()->create([
-        'type' => 'foto',
-        'file' => 'foto/'.$filename,
-    ]);
-}
 
     public function index(Request $request, Wilayah $wilayah)
     {
