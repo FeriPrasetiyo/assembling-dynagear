@@ -50,28 +50,26 @@ class PostController extends Controller
             "SO : ".$request->nomor_so."\n".
             "Tanggal : ".date('d-m-Y H:i');
 
-        $image->text(
-            $watermark,
-            $image->width() - 30,
-            $image->height() - 30,
-            function ($font) {
-                $font->size(20);
-                $font->color('#ffffff');
-                $font->align('right');
-            }
-        );
+            $image->text(
+    $watermark,
+    $image->width() - 30,
+    $image->height() - 30,
+    function ($font) {
+        $font->size(20);
+        $font->color('#ffffff');
+        $font->align('right');
+    }
+);
 
-        $encoded = $image->encodeByExtension('jpg', quality: 85);
+Storage::disk('public')->put(
+    'foto/'.$filename,
+    (string) $image->toJpeg(85)
+);
 
-        Storage::disk('public')->put(
-            'foto/'.$filename,
-            (string) $encoded
-        );
-
-        $post->files()->create([
-            'type' => 'foto',
-            'file' => 'foto/'.$filename,
-        ]);
+$post->files()->create([
+    'type' => 'foto',
+    'file' => 'foto/'.$filename,
+]);
     }
 
     public function index(Request $request, Wilayah $wilayah)
