@@ -50,47 +50,56 @@ class PostController extends Controller
     $padding = max(28, intval($image->width() * 0.025));
     $lineHeight = intval($fontSize * 1.35);
 
-    $boxWidth = intval($image->width() * 0.36);
+    $boxWidth = intval($image->width() * 0.38);
     $boxHeight = ($lineHeight * 4) + ($padding * 2);
 
     $boxX = $margin;
     $boxY = $image->height() - $boxHeight - $margin;
 
-    // Background hitam transparan
-    $image->drawRectangle($boxX, $boxY, function ($draw) use ($boxWidth, $boxHeight) {
-        $draw->size($boxWidth, $boxHeight);
-        $draw->background('rgba(0, 0, 0, 0.70)');
-    });
+    // Buat background hitam transparan
+    $box = imagecreatetruecolor($boxWidth, $boxHeight);
+    imagesavealpha($box, true);
+
+    $transparent = imagecolorallocatealpha($box, 0, 0, 0, 127);
+    imagefill($box, 0, 0, $transparent);
+
+    $black = imagecolorallocatealpha($box, 0, 0, 0, 35);
+    imagefilledrectangle($box, 0, 0, $boxWidth, $boxHeight, $black);
+
+    $boxPath = storage_path('app/temp_watermark_box_'.uniqid().'.png');
+    imagepng($box, $boxPath);
+    imagedestroy($box);
+
+    // Tempel background ke foto
+    $overlay = $manager->decodePath($boxPath);
+    $image->place($overlay, 'top-left', $boxX, $boxY);
+
+    if (file_exists($boxPath)) {
+        unlink($boxPath);
+    }
 
     $textX = $boxX + $padding;
     $textY = $boxY + $padding;
 
-    // Judul
     $image->text('PT DYNAGEAR', $textX, $textY, function ($font) use ($fontSize) {
         $font->size($fontSize);
         $font->color('#ffffff');
         $font->align('left');
     });
 
-    // Garis
-    $image->drawLine($textX, $textY + $lineHeight, $boxX + $boxWidth - $padding, $textY + $lineHeight, function ($draw) {
-        $draw->color('rgba(255, 255, 255, 0.55)');
-        $draw->width(2);
-    });
-
-    $image->text('WILAYAH : '.strtoupper($wilayah->nama_wilayah), $textX, $textY + ($lineHeight * 1.3), function ($font) use ($smallFontSize) {
+    $image->text('WILAYAH : '.strtoupper($wilayah->nama_wilayah), $textX, $textY + ($lineHeight * 1.2), function ($font) use ($smallFontSize) {
         $font->size($smallFontSize);
         $font->color('#ffffff');
         $font->align('left');
     });
 
-    $image->text('SO : '.$request->nomor_so, $textX, $textY + ($lineHeight * 2.3), function ($font) use ($smallFontSize) {
+    $image->text('SO : '.$request->nomor_so, $textX, $textY + ($lineHeight * 2.2), function ($font) use ($smallFontSize) {
         $font->size($smallFontSize);
         $font->color('#ffffff');
         $font->align('left');
     });
 
-    $image->text(date('d-m-Y H:i'), $textX, $textY + ($lineHeight * 3.3), function ($font) use ($smallFontSize) {
+    $image->text(date('d-m-Y H:i'), $textX, $textY + ($lineHeight * 3.2), function ($font) use ($smallFontSize) {
         $font->size($smallFontSize);
         $font->color('#ffffff');
         $font->align('left');
