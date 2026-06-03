@@ -43,47 +43,58 @@ class PostController extends Controller
     $manager = ImageManager::usingDriver(Driver::class);
     $image = $manager->decodePath($foto->getPathname());
 
-    $fontSize = max(36, intval($image->width() / 35));
-    $lineHeight = $fontSize + 18;
-    $margin = 60;
+    $fontSize = max(42, intval($image->width() / 32));
+    $smallFontSize = max(34, intval($fontSize * 0.82));
 
-    $lines = [
-        'PT DYNAGEAR',
-        'WILAYAH : '.strtoupper($wilayah->nama_wilayah),
-        'SO : '.$request->nomor_so,
-        date('d-m-Y H:i'),
-    ];
+    $margin = max(40, intval($image->width() * 0.035));
+    $padding = max(28, intval($image->width() * 0.025));
+    $lineHeight = intval($fontSize * 1.35);
 
-    $x = $margin;
-    $y = $image->height() - $margin - (count($lines) - 1) * $lineHeight;
+    $boxWidth = intval($image->width() * 0.36);
+    $boxHeight = ($lineHeight * 4) + ($padding * 2);
 
-    foreach ($lines as $index => $line) {
-        $lineY = $y + ($index * $lineHeight);
+    $boxX = $margin;
+    $boxY = $image->height() - $boxHeight - $margin;
 
-        // Shadow hitam supaya terlihat di background terang
-        $image->text(
-            $line,
-            $x + 3,
-            $lineY + 3,
-            function ($font) use ($fontSize) {
-                $font->size($fontSize);
-                $font->color('#000000');
-                $font->align('left');
-            }
-        );
+    // Background hitam transparan
+    $image->drawRectangle($boxX, $boxY, function ($draw) use ($boxWidth, $boxHeight) {
+        $draw->size($boxWidth, $boxHeight);
+        $draw->background('rgba(0, 0, 0, 0.70)');
+    });
 
-        // Text putih
-        $image->text(
-            $line,
-            $x,
-            $lineY,
-            function ($font) use ($fontSize) {
-                $font->size($fontSize);
-                $font->color('#ffffff');
-                $font->align('left');
-            }
-        );
-    }
+    $textX = $boxX + $padding;
+    $textY = $boxY + $padding;
+
+    // Judul
+    $image->text('PT DYNAGEAR', $textX, $textY, function ($font) use ($fontSize) {
+        $font->size($fontSize);
+        $font->color('#ffffff');
+        $font->align('left');
+    });
+
+    // Garis
+    $image->drawLine($textX, $textY + $lineHeight, $boxX + $boxWidth - $padding, $textY + $lineHeight, function ($draw) {
+        $draw->color('rgba(255, 255, 255, 0.55)');
+        $draw->width(2);
+    });
+
+    $image->text('WILAYAH : '.strtoupper($wilayah->nama_wilayah), $textX, $textY + ($lineHeight * 1.3), function ($font) use ($smallFontSize) {
+        $font->size($smallFontSize);
+        $font->color('#ffffff');
+        $font->align('left');
+    });
+
+    $image->text('SO : '.$request->nomor_so, $textX, $textY + ($lineHeight * 2.3), function ($font) use ($smallFontSize) {
+        $font->size($smallFontSize);
+        $font->color('#ffffff');
+        $font->align('left');
+    });
+
+    $image->text(date('d-m-Y H:i'), $textX, $textY + ($lineHeight * 3.3), function ($font) use ($smallFontSize) {
+        $font->size($smallFontSize);
+        $font->color('#ffffff');
+        $font->align('left');
+    });
 
     $encoded = $image->encodeUsingFileExtension('jpg', quality: 85);
 
