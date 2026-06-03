@@ -69,43 +69,74 @@
                 <hr>
 
                 <div class="mb-3">
-                    <label class="form-label">Foto</label>
+                    <label class="form-label fw-bold">Ambil Foto dari Kamera</label>
 
                     <input type="file"
                            name="foto[]"
-                           id="fotoInput"
+                           id="fotoCameraInput"
                            class="form-control"
                            accept="image/*"
-                           capture="environment"
-                           multiple>
+                           capture="environment">
 
                     <small class="text-muted">
-                        Di HP akan membuka kamera belakang. Bisa pilih lebih dari satu foto.
+                        Untuk mengambil 1 foto langsung dari kamera HP.
                     </small>
 
-                    <div id="fotoList" class="mt-2 small text-muted"></div>
+                    <div id="fotoCameraList" class="mt-2 small text-muted"></div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Video</label>
+                    <label class="form-label fw-bold">Pilih Banyak Foto dari Galeri</label>
 
                     <input type="file"
-                           name="video[]"
-                           id="videoInput"
+                           name="foto[]"
+                           id="fotoGalleryInput"
                            class="form-control"
-                           accept="video/*"
-                           capture="environment"
+                           accept="image/*"
                            multiple>
 
                     <small class="text-muted">
-                        Di HP akan membuka kamera video belakang.
+                        Untuk memilih banyak foto sekaligus dari galeri HP.
                     </small>
 
-                    <div id="videoList" class="mt-2 small text-muted"></div>
+                    <div id="fotoGalleryList" class="mt-2 small text-muted"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Rekam Video dari Kamera</label>
+
+                    <input type="file"
+                           name="video[]"
+                           id="videoCameraInput"
+                           class="form-control"
+                           accept="video/*"
+                           capture="environment">
+
+                    <small class="text-muted">
+                        Untuk merekam 1 video langsung dari kamera HP.
+                    </small>
+
+                    <div id="videoCameraList" class="mt-2 small text-muted"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Pilih Video dari Galeri</label>
+
+                    <input type="file"
+                           name="video[]"
+                           id="videoGalleryInput"
+                           class="form-control"
+                           accept="video/*"
+                           multiple>
+
+                    <small class="text-muted">
+                        Untuk memilih video dari galeri HP.
+                    </small>
+
+                    <div id="videoGalleryList" class="mt-2 small text-muted"></div>
                 </div>
 
                 <div id="uploadBox" class="d-none mt-4">
-
                     <div class="alert alert-info mb-2">
                         Sedang upload data, mohon tunggu. Jangan tutup halaman ini.
                     </div>
@@ -118,7 +149,6 @@
                             0%
                         </div>
                     </div>
-
                 </div>
 
                 <div class="mt-4">
@@ -146,11 +176,17 @@
     const uploadBox = document.getElementById('uploadBox');
     const uploadProgress = document.getElementById('uploadProgress');
 
-    const fotoInput = document.getElementById('fotoInput');
-    const videoInput = document.getElementById('videoInput');
+    const fotoCameraInput = document.getElementById('fotoCameraInput');
+    const fotoGalleryInput = document.getElementById('fotoGalleryInput');
 
-    const fotoList = document.getElementById('fotoList');
-    const videoList = document.getElementById('videoList');
+    const videoCameraInput = document.getElementById('videoCameraInput');
+    const videoGalleryInput = document.getElementById('videoGalleryInput');
+
+    const fotoCameraList = document.getElementById('fotoCameraList');
+    const fotoGalleryList = document.getElementById('fotoGalleryList');
+
+    const videoCameraList = document.getElementById('videoCameraList');
+    const videoGalleryList = document.getElementById('videoGalleryList');
 
     function formatSize(bytes) {
         if (bytes < 1024) return bytes + ' B';
@@ -172,16 +208,23 @@
         });
 
         html += '</ul>';
-
         target.innerHTML = html;
     }
 
-    fotoInput.addEventListener('change', function () {
-        showSelectedFiles(fotoInput, fotoList, 'Foto');
+    fotoCameraInput.addEventListener('change', function () {
+        showSelectedFiles(fotoCameraInput, fotoCameraList, 'Foto kamera');
     });
 
-    videoInput.addEventListener('change', function () {
-        showSelectedFiles(videoInput, videoList, 'Video');
+    fotoGalleryInput.addEventListener('change', function () {
+        showSelectedFiles(fotoGalleryInput, fotoGalleryList, 'Foto galeri');
+    });
+
+    videoCameraInput.addEventListener('change', function () {
+        showSelectedFiles(videoCameraInput, videoCameraList, 'Video kamera');
+    });
+
+    videoGalleryInput.addEventListener('change', function () {
+        showSelectedFiles(videoGalleryInput, videoGalleryList, 'Video galeri');
     });
 
     form.addEventListener('submit', function () {
