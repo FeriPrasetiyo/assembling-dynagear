@@ -1,41 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Dokumentasi product - Dynagear</title>
+    <title>Dokumentasi Product - Dynagear</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
 
-<!-- Navbar -->
+    <style>
+        body {
+            background: #f4f6f9;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+        }
+
+        .page-title {
+            font-weight: 700;
+        }
+
+        .welcome-box {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+        }
+
+        .wilayah-card {
+            border: 0;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: 0.2s;
+        }
+
+        .wilayah-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+        }
+
+        .wilayah-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            background: #e8f1ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin: 0 auto 12px;
+        }
+
+        .btn-mobile {
+            padding: 12px;
+            font-weight: 600;
+            border-radius: 12px;
+        }
+
+        .role-badge {
+            font-size: 12px;
+        }
+
+        @media (max-width: 576px) {
+            .navbar .container {
+                align-items: flex-start;
+            }
+
+            .navbar-actions {
+                width: 100%;
+                margin-top: 12px;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .navbar-actions .welcome-text {
+                grid-column: 1 / -1;
+                margin: 0 !important;
+                font-size: 14px;
+            }
+
+            .navbar-actions a,
+            .navbar-actions button {
+                width: 100%;
+            }
+
+            .header-action {
+                width: 100%;
+                margin-top: 12px;
+            }
+
+            .header-row {
+                display: block !important;
+            }
+
+            .wilayah-card {
+                border-radius: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
     <div class="container">
 
-        <a class="navbar-brand" href="/wilayah">
+        <a class="navbar-brand d-flex align-items-center" href="/wilayah">
             <img src="{{ asset('img/logo/dynagearlogo.jpg') }}"
-                 width="40"
-                 height="40"
+                 width="42"
+                 height="42"
                  class="rounded-circle me-2">
 
             Dynagear
         </a>
 
-        <div class="ms-auto d-flex align-items-center">
+        <div class="ms-auto d-flex align-items-center navbar-actions">
 
-            <span class="text-white me-3">
+            <span class="text-white me-3 welcome-text">
                 Selamat Datang,
                 <strong>{{ Auth::user()->name }}</strong>
 
-                <span class="badge bg-warning text-dark ms-2">
+                <span class="badge bg-warning text-dark ms-1 role-badge">
                     {{ strtoupper(Auth::user()->role) }}
                 </span>
             </span>
 
             @if(Auth::user()->role === 'admin')
                 <a href="/users"
-                   class="btn btn-light btn-sm me-2">
+                   class="btn btn-light btn-sm">
                     User
                 </a>
             @endif
@@ -54,20 +146,29 @@
     </div>
 </nav>
 
-<!-- Content -->
-<div class="container mt-4">
+<div class="container mt-4 mb-5">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="welcome-box mb-4">
+        <div class="d-flex justify-content-between align-items-center header-row">
 
-        <h2>Dokumentasi Product</h2>
+            <div>
+                <h2 class="page-title mb-1">
+                    Dokumentasi Product
+                </h2>
 
-        @if(Auth::user()->role === 'admin')
-            <a href="/wilayah/create"
-               class="btn btn-success">
-                + Tambah Wilayah
-            </a>
-        @endif
+                <p class="text-muted mb-0">
+                    Kelola dokumentasi foto dan video berdasarkan wilayah.
+                </p>
+            </div>
 
+            @if(Auth::user()->role === 'admin')
+                <a href="/wilayah/create"
+                   class="btn btn-success btn-mobile header-action">
+                    + Tambah Wilayah
+                </a>
+            @endif
+
+        </div>
     </div>
 
     @if(session('success'))
@@ -86,18 +187,22 @@
 
         @forelse($wilayahs as $wilayah)
 
-            <div class="col-md-4 mb-4">
+            <div class="col-12 col-md-6 col-lg-4 mb-4">
 
-                <div class="card shadow border-0 h-100">
+                <div class="card wilayah-card shadow-sm h-100">
 
-                    <div class="card-body text-center">
+                    <div class="card-body text-center p-4">
 
-                        <h4 class="fw-bold text-primary">
+                        <div class="wilayah-icon">
+                            📍
+                        </div>
+
+                        <h4 class="fw-bold text-primary mb-2">
                             {{ $wilayah->nama_wilayah }}
                         </h4>
 
                         @if(Auth::user()->role === 'admin' && $wilayah->user)
-                            <p class="text-muted mb-1">
+                            <p class="text-muted mb-0">
                                 User:
                                 <strong>{{ $wilayah->user->name }}</strong>
                             </p>
@@ -105,12 +210,12 @@
 
                     </div>
 
-                    <div class="card-footer bg-white border-0">
+                    <div class="card-footer bg-white border-0 p-3">
 
                         <div class="d-grid gap-2">
 
                             <a href="/wilayah/{{ $wilayah->id }}/foto-video"
-                               class="btn btn-primary">
+                               class="btn btn-primary btn-mobile">
                                 📷 Lihat Foto & Video
                             </a>
 
@@ -124,7 +229,7 @@
                                     @method('DELETE')
 
                                     <button type="submit"
-                                            class="btn btn-danger w-100">
+                                            class="btn btn-danger btn-mobile w-100">
                                         🗑 Hapus Wilayah
                                     </button>
 
@@ -142,18 +247,24 @@
 
         @empty
 
-            <div class="col-md-12">
+            <div class="col-12">
 
-                <div class="alert alert-info text-center">
+                <div class="alert alert-info text-center p-4">
 
-                    Belum ada data wilayah.
+                    <h5 class="fw-bold">
+                        Belum ada data wilayah.
+                    </h5>
+
+                    <p class="mb-0">
+                        Silakan tambahkan wilayah terlebih dahulu.
+                    </p>
 
                     @if(Auth::user()->role === 'admin')
 
-                        <br><br>
+                        <br>
 
                         <a href="/wilayah/create"
-                           class="btn btn-success">
+                           class="btn btn-success btn-mobile">
                             Tambah Wilayah Pertama
                         </a>
 
