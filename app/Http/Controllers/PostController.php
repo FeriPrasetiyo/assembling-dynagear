@@ -40,8 +40,9 @@ class PostController extends Controller
     {
         $filename = time().'_'.uniqid().'.jpg';
 
-        $manager = new ImageManager(new Driver());
-        $image = $manager->read($foto->getPathname());
+        $manager = ImageManager::usingDriver(Driver::class);
+
+        $image = $manager->decodePath($foto->getPathname());
 
         $watermark =
             "PT DYNAGEAR\n".
@@ -61,9 +62,11 @@ class PostController extends Controller
             }
         );
 
+        $encoded = $image->encodeByExtension('jpg', quality: 85);
+
         Storage::disk('public')->put(
             'foto/'.$filename,
-            (string) $image->toJpeg()
+            (string) $encoded
         );
 
         $post->files()->create([
