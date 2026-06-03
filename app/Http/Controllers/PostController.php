@@ -45,21 +45,20 @@ class PostController extends Controller
     $image = $manager->decodePath($foto->getPathname());
 
     $watermark =
-        "PT DYNAGEAR\n".
-        "Wilayah : ".$wilayah->nama_wilayah."\n".
-        "SO : ".$request->nomor_so."\n".
-        "Tanggal : ".date('d-m-Y H:i');
+    "PT DYNAGEAR\n".
+    "WILAYAH : ".strtoupper($wilayah->nama_wilayah)."\n".
+    "SO : ".$request->nomor_so."\n".date('d-m-Y H:i');
 
     $image->text(
-        $watermark,
-        $image->width() - 30,
-        $image->height() - 30,
-        function ($font) {
-            $font->size(20);
-            $font->color('#ffffff');
-            $font->align('right');
-        }
-    );
+    $watermark,
+    $image->width() - 100,
+    $image->height() - 100,
+    function ($font) {
+        $font->size(50);
+        $font->color('#ffffff');
+        $font->align('right');
+    }
+);
 
     $encoded = $image->encodeUsingFileExtension('jpg', quality: 85);
 
