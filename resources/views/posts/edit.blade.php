@@ -9,7 +9,7 @@
 </head>
 <body class="bg-light">
 
-<div class="container mt-4">
+<div class="container mt-4 mb-5">
 
     <div class="card shadow">
 
@@ -37,7 +37,8 @@
                 </div>
             @endif
 
-            <form action="/wilayah/{{ $wilayah->id }}/foto-video/{{ $post->id }}"
+            <form id="uploadForm"
+                  action="/wilayah/{{ $wilayah->id }}/foto-video/{{ $post->id }}"
                   method="POST"
                   enctype="multipart/form-data">
 
@@ -127,11 +128,20 @@
 
                 <div class="mb-3">
                     <label class="form-label">Tambah Foto Baru</label>
+
                     <input type="file"
                            name="foto[]"
+                           id="fotoInput"
                            class="form-control"
                            accept="image/*"
+                           capture="environment"
                            multiple>
+
+                    <small class="text-muted">
+                        Di HP akan membuka kamera belakang. Foto baru akan otomatis diberi watermark.
+                    </small>
+
+                    <div id="fotoList" class="mt-2 small text-muted"></div>
                 </div>
 
                 <hr>
@@ -184,25 +194,55 @@
 
                 <div class="mb-3">
                     <label class="form-label">Tambah Video Baru</label>
+
                     <input type="file"
                            name="video[]"
+                           id="videoInput"
                            class="form-control"
                            accept="video/*"
+                           capture="environment"
                            multiple>
+
+                    <small class="text-muted">
+                        Di HP akan membuka kamera video belakang.
+                    </small>
+
+                    <div id="videoList" class="mt-2 small text-muted"></div>
                 </div>
 
                 <div class="alert alert-warning">
                     Centang foto/video yang ingin dihapus, lalu klik <strong>Update Data</strong>.
                 </div>
 
-                <button type="submit" class="btn btn-success">
-                    Update Data
-                </button>
+                <div id="uploadBox" class="d-none mt-4">
 
-                <a href="/wilayah/{{ $wilayah->id }}/foto-video/{{ $post->id }}"
-                   class="btn btn-secondary">
-                    Batal
-                </a>
+                    <div class="alert alert-info mb-2">
+                        Sedang mengupdate data, mohon tunggu. Jangan tutup halaman ini.
+                    </div>
+
+                    <div class="progress">
+                        <div id="uploadProgress"
+                             class="progress-bar progress-bar-striped progress-bar-animated"
+                             role="progressbar"
+                             style="width: 0%">
+                            0%
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit"
+                            id="submitBtn"
+                            class="btn btn-success">
+                        Update Data
+                    </button>
+
+                    <a href="/wilayah/{{ $wilayah->id }}/foto-video/{{ $post->id }}"
+                       class="btn btn-secondary">
+                        Batal
+                    </a>
+                </div>
 
             </form>
 
@@ -211,6 +251,70 @@
     </div>
 
 </div>
+
+<script>
+    const form = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadBox = document.getElementById('uploadBox');
+    const uploadProgress = document.getElementById('uploadProgress');
+
+    const fotoInput = document.getElementById('fotoInput');
+    const videoInput = document.getElementById('videoInput');
+
+    const fotoList = document.getElementById('fotoList');
+    const videoList = document.getElementById('videoList');
+
+    function formatSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function showSelectedFiles(input, target, label) {
+        target.innerHTML = '';
+
+        if (!input.files || input.files.length === 0) {
+            return;
+        }
+
+        let html = '<strong>' + label + ' baru dipilih:</strong><ul class="mb-0">';
+
+        Array.from(input.files).forEach(function (file) {
+            html += '<li>' + file.name + ' (' + formatSize(file.size) + ')</li>';
+        });
+
+        html += '</ul>';
+
+        target.innerHTML = html;
+    }
+
+    fotoInput.addEventListener('change', function () {
+        showSelectedFiles(fotoInput, fotoList, 'Foto');
+    });
+
+    videoInput.addEventListener('change', function () {
+        showSelectedFiles(videoInput, videoList, 'Video');
+    });
+
+    form.addEventListener('submit', function () {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Mengupdate...';
+
+        uploadBox.classList.remove('d-none');
+
+        let progress = 0;
+
+        const interval = setInterval(function () {
+            if (progress < 95) {
+                progress += 5;
+                uploadProgress.style.width = progress + '%';
+                uploadProgress.innerText = progress + '%';
+            } else {
+                clearInterval(interval);
+            }
+        }, 400);
+    });
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
