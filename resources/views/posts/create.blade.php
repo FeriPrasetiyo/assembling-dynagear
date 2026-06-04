@@ -8,30 +8,54 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        body { background: #f4f6f9; }
-        .navbar-brand { font-weight: 700; }
+        body {
+            background: #f4f6f9;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+        }
+
         .page-box {
             background: #ffffff;
             border-radius: 16px;
             padding: 18px;
             box-shadow: 0 4px 14px rgba(0,0,0,0.06);
         }
+
         .form-control {
             padding: 12px;
             border-radius: 12px;
             font-size: 16px;
         }
+
         .btn-mobile {
             padding: 12px;
             border-radius: 12px;
             font-weight: 600;
         }
+
         .upload-card {
             border: 1px dashed #ced4da;
             border-radius: 16px;
             padding: 16px;
             background: #fbfcff;
         }
+
+        .upload-button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .selected-list {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+
         @media (max-width: 576px) {
             .action-row {
                 display: grid !important;
@@ -124,74 +148,122 @@
             </div>
 
             <div class="upload-card mb-3">
-                <h5 class="fw-bold mb-3">Foto</h5>
+                <h5 class="fw-bold mb-3">
+                    Foto
+                </h5>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Ambil Foto dari Kamera</label>
+                    <label class="form-label fw-semibold">
+                        Ambil Foto dari Kamera
+                    </label>
+
                     <input type="file"
                            name="foto[]"
                            id="fotoCameraInput"
-                           class="form-control"
                            accept="image/*"
-                           capture="environment">
+                           capture="environment"
+                           hidden>
 
-                    <small class="text-muted">
+                    <button type="button"
+                            class="btn btn-primary upload-button"
+                            onclick="document.getElementById('fotoCameraInput').click()">
+                        📷 Buka Kamera
+                    </button>
+
+                    <small class="text-muted d-block mt-2">
                         Ambil 1 foto langsung dari kamera HP.
                     </small>
 
-                    <div id="fotoCameraList" class="mt-2 small text-muted"></div>
+                    <div id="fotoCameraList"
+                         class="mt-2 small text-muted">
+                    </div>
                 </div>
 
                 <div class="mb-0">
-                    <label class="form-label fw-semibold">Pilih Banyak Foto dari Galeri</label>
+                    <label class="form-label fw-semibold">
+                        Pilih Banyak Foto dari Galeri
+                    </label>
+
                     <input type="file"
                            name="foto[]"
                            id="fotoGalleryInput"
-                           class="form-control"
                            accept="image/*"
-                           multiple>
+                           multiple
+                           hidden>
 
-                    <small class="text-muted">
+                    <button type="button"
+                            class="btn btn-success upload-button"
+                            onclick="document.getElementById('fotoGalleryInput').click()">
+                        🖼 Pilih Foto dari Galeri
+                    </button>
+
+                    <small class="text-muted d-block mt-2">
                         Pilih banyak foto sekaligus dari galeri HP.
                     </small>
 
-                    <div id="fotoGalleryList" class="mt-2 small text-muted"></div>
+                    <div id="fotoGalleryList"
+                         class="mt-2 small text-muted">
+                    </div>
                 </div>
             </div>
 
             <div class="upload-card mb-4">
-                <h5 class="fw-bold mb-3">Video</h5>
+                <h5 class="fw-bold mb-3">
+                    Video
+                </h5>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Rekam Video dari Kamera</label>
+                    <label class="form-label fw-semibold">
+                        Rekam Video dari Kamera
+                    </label>
+
                     <input type="file"
                            name="video[]"
                            id="videoCameraInput"
-                           class="form-control"
                            accept="video/*"
-                           capture="environment">
+                           capture="environment"
+                           hidden>
 
-                    <small class="text-muted">
+                    <button type="button"
+                            class="btn btn-danger upload-button"
+                            onclick="document.getElementById('videoCameraInput').click()">
+                        🎥 Rekam Video
+                    </button>
+
+                    <small class="text-muted d-block mt-2">
                         Rekam 1 video langsung dari kamera HP.
                     </small>
 
-                    <div id="videoCameraList" class="mt-2 small text-muted"></div>
+                    <div id="videoCameraList"
+                         class="mt-2 small text-muted">
+                    </div>
                 </div>
 
                 <div class="mb-0">
-                    <label class="form-label fw-semibold">Pilih Video dari Galeri</label>
+                    <label class="form-label fw-semibold">
+                        Pilih Video dari Galeri
+                    </label>
+
                     <input type="file"
                            name="video[]"
                            id="videoGalleryInput"
-                           class="form-control"
                            accept="video/*"
-                           multiple>
+                           multiple
+                           hidden>
 
-                    <small class="text-muted">
+                    <button type="button"
+                            class="btn btn-dark upload-button"
+                            onclick="document.getElementById('videoGalleryInput').click()">
+                        📁 Pilih Video dari Galeri
+                    </button>
+
+                    <small class="text-muted d-block mt-2">
                         Pilih video dari galeri HP.
                     </small>
 
-                    <div id="videoGalleryList" class="mt-2 small text-muted"></div>
+                    <div id="videoGalleryList"
+                         class="mt-2 small text-muted">
+                    </div>
                 </div>
             </div>
 
@@ -251,15 +323,21 @@
     function showSelectedFiles(input, target, label) {
         target.innerHTML = '';
 
-        if (!input.files || input.files.length === 0) return;
+        if (!input.files || input.files.length === 0) {
+            return;
+        }
 
-        let html = '<strong>' + label + ' dipilih:</strong><ul class="mb-0">';
+        let html = '<div class="selected-list">';
+        html += '<strong>' + label + ' dipilih:</strong>';
+        html += '<ul class="mb-0 mt-1">';
 
         Array.from(input.files).forEach(function (file) {
             html += '<li>' + file.name + ' (' + formatSize(file.size) + ')</li>';
         });
 
         html += '</ul>';
+        html += '</div>';
+
         target.innerHTML = html;
     }
 

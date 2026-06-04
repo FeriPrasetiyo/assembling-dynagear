@@ -216,7 +216,7 @@
 
         <a href="/wilayah/{{ $wilayah->id }}/foto-video"
            class="btn btn-primary btn-mobile">
-            Lihat Foto & Video
+            🖼️ Lihat Dokumentasi
         </a>
 
         @if(Auth::user()->role === 'admin')
