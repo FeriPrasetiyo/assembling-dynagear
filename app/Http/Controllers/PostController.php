@@ -68,9 +68,9 @@ class PostController extends Controller
             $fontPath = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
         }
 
-        $fontSize = max(36, intval($width / 24));
-        $padding = intval($fontSize * 0.8);
-        $lineHeight = intval($fontSize * 1.45);
+        $fontSize = max(20, intval($width / 45));
+        $padding = intval($fontSize * 0.6);
+        $lineHeight = intval($fontSize * 1.35);
 
         $lines = [
             'PT DYNAGEAR',
@@ -83,7 +83,13 @@ class PostController extends Controller
             $maxTextWidth = 0;
 
             foreach ($lines as $line) {
-                $box = imagettfbbox($fontSize, 0, $fontPath, $line);
+                $box = imagettfbbox(
+                    $fontSize,
+                    0,
+                    $fontPath,
+                    $line
+                );
+
                 $textWidth = abs($box[4] - $box[0]);
 
                 if ($textWidth > $maxTextWidth) {
@@ -92,14 +98,35 @@ class PostController extends Controller
             }
 
             $boxWidth = $maxTextWidth + ($padding * 2);
-            $boxHeight = ($lineHeight * count($lines)) + intval($padding * 1.3);
+            $boxHeight = ($lineHeight * count($lines))
+                + intval($padding * 1.2);
 
-            $boxX = intval($width * 0.035);
-            $boxY = $height - $boxHeight - intval($height * 0.04);
+            $boxX = intval($width * 0.03);
+            $boxY = $height
+                - $boxHeight
+                - intval($height * 0.03);
 
-            $blackTransparent = imagecolorallocatealpha($image, 0, 0, 0, 45);
-            $white = imagecolorallocate($image, 255, 255, 255);
-            $black = imagecolorallocate($image, 0, 0, 0);
+            $blackTransparent = imagecolorallocatealpha(
+                $image,
+                0,
+                0,
+                0,
+                70
+            );
+
+            $white = imagecolorallocate(
+                $image,
+                255,
+                255,
+                255
+            );
+
+            $black = imagecolorallocate(
+                $image,
+                0,
+                0,
+                0
+            );
 
             imagefilledrectangle(
                 $image,
@@ -116,12 +143,39 @@ class PostController extends Controller
             foreach ($lines as $index => $line) {
                 $y = $textY + ($index * $lineHeight);
 
-                imagettftext($image, $fontSize, 0, $textX + 3, $y + 3, $black, $fontPath, $line);
-                imagettftext($image, $fontSize, 0, $textX, $y, $white, $fontPath, $line);
+                imagettftext(
+                    $image,
+                    $fontSize,
+                    0,
+                    $textX + 2,
+                    $y + 2,
+                    $black,
+                    $fontPath,
+                    $line
+                );
+
+                imagettftext(
+                    $image,
+                    $fontSize,
+                    0,
+                    $textX,
+                    $y,
+                    $white,
+                    $fontPath,
+                    $line
+                );
             }
         } else {
             $white = imagecolorallocate($image, 255, 255, 255);
-            imagestring($image, 5, 30, $height - 100, 'PT DYNAGEAR - '.$request->nomor_so, $white);
+
+            imagestring(
+                $image,
+                5,
+                30,
+                $height - 100,
+                'PT DYNAGEAR - '.$request->nomor_so,
+                $white
+            );
         }
 
         imagejpeg($image, $savePath, 85);
