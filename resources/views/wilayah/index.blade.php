@@ -212,34 +212,39 @@
 
                     <div class="card-footer bg-white border-0 p-3">
 
-                        <div class="d-grid gap-2">
+    <div class="d-grid gap-2">
 
-                            <a href="/wilayah/{{ $wilayah->id }}/foto-video"
-                               class="btn btn-primary btn-mobile">
-                                📷 Lihat Foto & Video
-                            </a>
+        <a href="/wilayah/{{ $wilayah->id }}/foto-video"
+           class="btn btn-primary btn-mobile">
+            📷 Lihat Foto & Video
+        </a>
 
-                            @if(Auth::user()->role === 'admin')
+        @if(Auth::user()->role === 'admin')
 
-                                <form action="/wilayah/{{ $wilayah->id }}"
-                                      method="POST"
-                                      onsubmit="return confirm('Yakin ingin menghapus wilayah ini?')">
+            <a href="/wilayah/{{ $wilayah->id }}/foto-video/create"
+               class="btn btn-success btn-mobile">
+                ➕ Tambah Data
+            </a>
 
-                                    @csrf
-                                    @method('DELETE')
+            <form action="/wilayah/{{ $wilayah->id }}"
+                  method="POST"
+                  onsubmit="return confirm('Yakin ingin menghapus wilayah ini?')">
 
-                                    <button type="submit"
-                                            class="btn btn-danger btn-mobile w-100">
-                                        🗑 Hapus Wilayah
-                                    </button>
+                @csrf
+                @method('DELETE')
 
-                                </form>
+                <button type="submit"
+                        class="btn btn-danger btn-mobile w-100">
+                    🗑 Hapus Wilayah
+                </button>
 
-                            @endif
+            </form>
 
-                        </div>
+        @endif
 
-                    </div>
+    </div>
+
+</div>
 
                 </div>
 
