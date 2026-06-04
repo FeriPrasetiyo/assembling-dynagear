@@ -216,14 +216,14 @@
 
         <a href="/wilayah/{{ $wilayah->id }}/foto-video"
            class="btn btn-primary btn-mobile">
-            📷 Lihat Foto & Video
+            Lihat Foto & Video
         </a>
 
         @if(Auth::user()->role === 'admin')
 
             <a href="/wilayah/{{ $wilayah->id }}/foto-video/create"
                class="btn btn-success btn-mobile">
-                ➕ Tambah Data
+                📷 Tambah Data
             </a>
 
             <form action="/wilayah/{{ $wilayah->id }}"
