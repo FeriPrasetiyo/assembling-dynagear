@@ -72,7 +72,7 @@
 </head>
 <body>
 
-<nav class="navbar navbar-dark bg-primary shadow">
+<nav class="navbar navbar-dark bg-warning shadow">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="#">
             <img src="{{ asset('img/logo/dynagearlogo.jpg') }}"

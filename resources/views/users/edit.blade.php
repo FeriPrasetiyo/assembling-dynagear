@@ -72,7 +72,7 @@
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+<nav class="navbar navbar-expand-lg navbar-dark bg-warning shadow">
     <div class="container">
 
         <a href="/wilayah"

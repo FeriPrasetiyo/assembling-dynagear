@@ -70,7 +70,7 @@
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+<nav class="navbar navbar-expand-lg navbar-dark bg-warning shadow">
     <div class="container">
 
         <a class="navbar-brand d-flex align-items-center" href="/wilayah">
@@ -174,7 +174,7 @@
                                 </div>
                             </div>
 
-                            <span class="badge bg-primary">
+                            <span class="badge bg-warning">
                                 #{{ ($posts->currentPage() - 1) * $posts->perPage() + $loop->iteration }}
                             </span>
 
