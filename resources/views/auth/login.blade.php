@@ -7,72 +7,118 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
+
     <style>
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0d6efd, #0b3d91);
-        }
+    :root{
+        --dynagear-yellow:#f4b400;
+        --dynagear-yellow-dark:#e0a800;
+        --dynagear-yellow-light:#fff8e1;
+        --dynagear-blue:#0d6efd;
+    }
+
+    body {
+        min-height: 100vh;
+        background: linear-gradient(
+            135deg,
+            var(--dynagear-yellow-light),
+            #ffe082
+        );
+    }
+
+    .login-wrapper {
+        min-height: calc(100vh - 72px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 12px;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 420px;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .logo-login {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 4px solid var(--dynagear-yellow);
+        box-shadow: 0 4px 14px rgba(0,0,0,.15);
+    }
+
+    .form-control {
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 12px;
+        border: 1px solid #dee2e6;
+    }
+
+    .form-control:focus {
+        border-color: var(--dynagear-yellow);
+        box-shadow: 0 0 0 0.2rem rgba(244,180,0,.25);
+    }
+
+    .btn-login {
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .btn-dynagear {
+        background: var(--dynagear-yellow);
+        border-color: var(--dynagear-yellow);
+        color: #ffffff;
+    }
+
+    .btn-dynagear:hover {
+        background: var(--dynagear-yellow-dark);
+        border-color: var(--dynagear-yellow-dark);
+        color: #ffffff;
+    }
+
+    .navbar-brand {
+        font-weight: 700;
+    }
+
+    .login-title {
+        color: #333;
+        font-weight: 700;
+    }
+
+    .login-subtitle {
+        color: #6c757d;
+    }
+
+    .card {
+        border: none;
+    }
+
+    @media (max-width: 576px) {
 
         .login-wrapper {
-            min-height: calc(100vh - 72px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px 12px;
+            align-items: flex-start;
+            padding-top: 30px;
         }
 
         .login-card {
-            width: 100%;
-            max-width: 420px;
-            border-radius: 18px;
-            overflow: hidden;
+            border-radius: 16px;
         }
 
-        .logo-login {
-            width: 76px;
-            height: 76px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 3px solid #ffffff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        .card-body {
+            padding: 24px 18px;
         }
-
-        .form-control {
-            padding: 12px;
-            font-size: 16px;
-            border-radius: 10px;
-        }
-
-        .btn-login {
-            padding: 12px;
-            font-size: 17px;
-            border-radius: 10px;
-            font-weight: 600;
-        }
-
-        .navbar-brand {
-            font-weight: 700;
-        }
-
-        @media (max-width: 576px) {
-            .login-wrapper {
-                align-items: flex-start;
-                padding-top: 30px;
-            }
-
-            .card-body {
-                padding: 24px 18px;
-            }
-
-            .login-card {
-                border-radius: 16px;
-            }
-        }
-    </style>
+    }
+</style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark bg-warning shadow">
+<nav class="navbar navbar-dark shadow"
+     style="background:#f4b400;">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="#">
             <img src="{{ asset('img/logo/dynagearlogo.jpg') }}"
@@ -96,9 +142,9 @@
                  alt="Logo Dynagear"
                  class="logo-login mb-3">
 
-            <h3 class="fw-bold mb-1">
-                Selamat Datang
-            </h3>
+            <h3 class="login-title mb-1">
+    Selamat Datang
+</h3>
 
             <p class="text-muted mb-4">
                 Silakan login untuk masuk ke sistem
@@ -155,9 +201,12 @@
                            required>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 btn-login">
-                    Login
-                </button>
+                <button type="submit"
+        class="btn btn-dynagear w-100 btn-login">
+
+    Login
+
+</button>
             </form>
 
         </div>
