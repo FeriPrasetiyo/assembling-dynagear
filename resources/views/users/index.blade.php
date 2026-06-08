@@ -11,67 +11,95 @@
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
-        body{
-            background:#f4f6f9;
+        :root {
+            --dynagear-yellow: #f4b400;
+            --dynagear-yellow-dark: #e0a800;
+            --dynagear-yellow-light: #fff8e1;
         }
 
-        .navbar-brand{
-            font-weight:700;
+        body {
+            background: #f4f6f9;
         }
 
-        .page-box{
-            background:#fff;
-            border-radius:16px;
-            padding:18px;
-            box-shadow:0 4px 14px rgba(0,0,0,.06);
+        .navbar-dynagear {
+            background: var(--dynagear-yellow);
         }
 
-        .user-card{
-            border:none;
-            border-radius:18px;
-            overflow:hidden;
-            transition:.2s;
+        .navbar-brand {
+            font-weight: 700;
+            color: #ffffff !important;
         }
 
-        .user-card:hover{
-            transform:translateY(-3px);
-            box-shadow:0 8px 20px rgba(0,0,0,.12);
+        .page-box {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 4px 14px rgba(0,0,0,.06);
         }
 
-        .user-icon{
-            width:70px;
-            height:70px;
-            border-radius:50%;
-            background:#e8f1ff;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-size:32px;
-            margin:auto;
+        .user-card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: .2s;
         }
 
-        .btn-mobile{
-            padding:12px;
-            border-radius:12px;
-            font-weight:600;
+        .user-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,.12);
         }
 
-        @media(max-width:576px){
+        .user-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--dynagear-yellow-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: auto;
+            color: var(--dynagear-yellow-dark);
+        }
 
-            .header-row{
-                display:block !important;
+        .btn-mobile {
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .btn-dynagear {
+            background: var(--dynagear-yellow);
+            border-color: var(--dynagear-yellow);
+            color: #ffffff;
+        }
+
+        .btn-dynagear:hover {
+            background: var(--dynagear-yellow-dark);
+            border-color: var(--dynagear-yellow-dark);
+            color: #ffffff;
+        }
+
+        .badge-user {
+            background: var(--dynagear-yellow);
+            color: #ffffff;
+        }
+
+        @media(max-width:576px) {
+            .header-row {
+                display: block !important;
             }
 
-            .header-action{
-                width:100%;
-                margin-top:12px;
+            .header-action {
+                width: 100%;
+                margin-top: 12px;
             }
         }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+<nav class="navbar navbar-expand-lg navbar-dark navbar-dynagear shadow">
     <div class="container">
 
         <a href="/wilayah"
@@ -101,7 +129,6 @@
         <div class="d-flex justify-content-between align-items-center header-row">
 
             <div>
-
                 <h2 class="fw-bold mb-1">
                     Data User
                 </h2>
@@ -109,15 +136,12 @@
                 <p class="text-muted mb-0">
                     Kelola pengguna sistem Dokumentasi Product Dynagear
                 </p>
-
             </div>
 
             <a href="/users/create"
                class="btn btn-success btn-mobile header-action">
-
                 <i class="bi bi-person-plus-fill"></i>
                 Tambah User
-
             </a>
 
         </div>
@@ -159,17 +183,13 @@
                         </p>
 
                         @if($user->role == 'admin')
-
                             <span class="badge bg-danger">
                                 ADMIN
                             </span>
-
                         @else
-
-                            <span class="badge bg-primary">
+                            <span class="badge badge-user">
                                 USER
                             </span>
-
                         @endif
 
                     </div>
@@ -179,11 +199,9 @@
                         <div class="d-grid gap-2">
 
                             <a href="/users/{{ $user->id }}/edit"
-                               class="btn btn-warning btn-mobile">
-
+                               class="btn btn-dynagear btn-mobile">
                                 <i class="bi bi-pencil-square"></i>
                                 Edit User
-
                             </a>
 
                             <form action="/users/{{ $user->id }}"
@@ -195,10 +213,8 @@
 
                                 <button type="submit"
                                         class="btn btn-danger btn-mobile w-100">
-
                                     <i class="bi bi-trash3-fill"></i>
                                     Hapus User
-
                                 </button>
 
                             </form>
@@ -227,10 +243,8 @@
 
                     <a href="/users/create"
                        class="btn btn-success">
-
                         <i class="bi bi-person-plus-fill"></i>
                         Tambah User Pertama
-
                     </a>
 
                 </div>
